@@ -1,8 +1,12 @@
 package com.exam.appointmentservice.service;
 
 import com.exam.appointmentservice.DoctorResponse;
+import com.exam.appointmentservice.dto.response.ApiResponse;
+import com.exam.appointmentservice.exception.DoctorServiceUnavailableException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,7 +18,7 @@ public class AppointmentService {
 
     @CircuitBreaker(
             name = "doctorServiceCB",
-            fallbackMethod = "doctorServiceFallback"
+            fallbackMethod = "getDoctorFallback"
     )
     public DoctorResponse checkDoctor(Long doctorId) {
 
@@ -24,16 +28,11 @@ public class AppointmentService {
         );
     }
 
-    public DoctorResponse doctorServiceFallback(
+    public DoctorResponse getDoctorFallback(
             Long doctorId,
-            Throwable throwable
+            Throwable e
     ) {
 
-        System.out.println(
-                "Doctor-Service không khả dụng: "
-                        + throwable.getMessage()
-        );
-
-        return null;
+        throw new DoctorServiceUnavailableException(e.getMessage());
     }
 }
